@@ -16,9 +16,9 @@ def get_data_from_file(self, path=script_path()):
     file.close()
     return data
 
+# Bulk indexing data
 def bulk_json_data(json_file, _index, doc_type):
-    print("1Indexing...")
-
+    print("Indexing...")
     json_list = get_data_from_file(json_file)
     for doc in json_list:
         # use a 'yield' generator so that the data
@@ -44,6 +44,7 @@ def search_results(keyword, index, field):
     )
     return res
 
+# Prints docID and article category
 def format_results(results):
     data = [doc for doc in results['hits']['hits']]
     for doc in data:
@@ -51,22 +52,15 @@ def format_results(results):
 
 if __name__ == "__main__":
     directory = '/Users/linn/Desktop/'
+    # Run elastic search locally
     es = Elasticsearch('127.0.0.1', port=9200, timeout=60)
     print("Elastic Running")
-    #helpers.bulk(es, load_json(directory), index='articles', doc_type='headline')
-    # articles = es.indices.create(index='article', body={
-    # 'settings' : {
-    #      'index' : {
-    #           'number_of_shards':6
-    #      }
-    # }
-    # })
-    helpers.parallel_bulk(es, bulk_json_data("../News_Category_Dataset_v2.json", "articles", "headline"), thread_count=4, chunk_size=500, max_chunk_bytes=104857600, queue_size=4)
-    #helpers.bulk(es, bulk_json_data("../News_Category_Dataset_v2.json", "articles", "headline"), index ="articles")
-    on = True
+    # Create index
+    helpers.bulk(es, bulk_json_data("../News_Category_Dataset_v2.json", "articles", "headline"), index ="articles")
+    # Print results
+    on = True # Enables querying multiple times
     while on == True:
         query = input("Enter your query: ")
         results = search_results(query, "articles", "headline")
         print(results)
         print(format_results(results))
-        print("Number of results: " + str(len(results['hits'])))
