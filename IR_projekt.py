@@ -16,6 +16,7 @@ def get_data_from_file(self, path=script_path()):
     file.close()
     return data
 
+
 # Bulk indexing data
 def bulk_json_data(json_file, _index, doc_type):
     print("Indexing...")
@@ -29,9 +30,14 @@ def bulk_json_data(json_file, _index, doc_type):
                 #"_type": doc_type,
                 "_id": uuid.uuid4(),
                 "_source": doc
-            }
+            }           
 
-
+def load_json():
+    " Use a generator, no need to load all in memory"
+    f = open('Users.json')
+    data = json.load(f)
+    for i in data:
+        res = es.index(index='users',doc_type='user_data',body=i)
 
 # Bulk indexing data
 def bulk_json_data_boosted(json_file, _index, doc_type):
@@ -106,13 +112,37 @@ def search_results(keyword, index, field):
         }
     )
     return res
+    #query_categories = format_query(res)
+    #return query_categories
+
+#Function to combine personalized preferences with search results
+#def combine_results():
+    
 
 # Prints docID and article category
-def format_results(results):
+def format_query(results):
+    query_categories = []
     data = [doc for doc in results['hits']['hits']]
     for doc in data:
+        query_categories.append(doc['_source']['category'])
+    return query_categories
         #print("%s) %s" % (doc['_id'], doc['_source']['category']))
-        print("%s) %s" % (doc['_id'], doc['_score']))
+        #print("%s) %s" % (doc['_id'], doc['_score']))
+
+#Personalizes the search results based on user preferences and query results
+def format_results(preferences, query_results):
+    #print(query_results)
+    data = [doc for doc in query_results['hits']['hits']]
+    for c in preferences:
+        if preferences.get(c) > 0:
+            for doc in data:
+                query_category = doc['_source']['category']
+                if query_category in c:
+                    print(c)
+            #print(user_pref[1][0].get(c))
+           
+# Format user preferences based on search results
+#def format_preferences(preferences, results)
 
 def user_preferences(user):
     user_pref = es.search(
@@ -120,42 +150,63 @@ def user_preferences(user):
         body={
             "query":{
                 "match": {
-                    "username": user
+                    "name": user
                 }
             }
         }
     )
-    return user_pref
 
+    data = [doc for doc in user_pref['hits']['hits']]
+    
+    for doc in data:
+        #print("%s) %s" % (doc['_id'], doc['_source']['categories']))
+        
+        # user_pref is a dictonary with category as key and score as value
+        user_pref = doc['_id'], doc['_source']['categories']
+        return user_pref[1][0]
+        
+        #for c in user_pref[1][0]:
+            #if user_pref[1][0].get(c) > 0:
+                #print(c)
+                #print(user_pref[1][0].get(c))
+           
 
 if __name__ == "__main__":
     directory = '/Users/linn/Desktop/'
     # Run elastic search locally
     es = Elasticsearch('127.0.0.1', port=9200, timeout=60)
     print("Elastic Running")
+    
     # Create article index
     #helpers.bulk(es, bulk_json_data("../News_Category_Dataset_v2.json", "articles", "headline"), index ="articles")
 
     # Create user index
-    helpers.bulk(es, bulk_json_data("Users.json", "users", "user_id"), index ="users")
+    load_json()
 
     # Get user preferences (categories)
     user = input("Enter user name: ")
     user_pref = user_preferences(user)
-
-    # Get results
-
-    # Modify user preferences (Top 5 search results)
     
-    # Modify results
+    # Get query results
+    query = input("Enter your query: ")
+    query_results = search_results(query, "articles", "headline")
+    
+    # Modify search results
+    # Format results rearranges results according to users preference
+    format_results(user_pref, query_results)
+    #format_pref = format_preferences(user_pref, results)
+
+    # Modify user preferences (Top 5 search results) 
+    # Format user preferences adds score to categories in user.json
+    # Scores are calculated based on categories in query results
 
     # Print results
-    on = True # Enables querying multiple times
-    while on == True:
-        query = input("Enter your query: ")
-        results = search_results(query, "articles", "headline")
-        results_boosted = search_results_boosted(query, "articles", "headline")
-        for res in results:
-            print(results)
-        print("Boosted Results: " + str(format_results(results_boosted)))
-        print("Results: " + str(format_results(results)))
+    #on = True # Enables querying multiple times
+    #while on == True:
+    #    query = input("Enter your query: ")
+    #    results = search_results(query, "articles", "headline")
+        #results_boosted = search_results_boosted(query, "articles", "headline")
+        #for res in results:
+        #    print(results)
+        #print("Boosted Results: " + str(format_results(results_boosted)))
+        #print("Results: " + str(format_results(results)))
