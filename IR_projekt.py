@@ -32,7 +32,7 @@ def bulk_json_data(json_file, _index, doc_type):
                 "_source": doc
             }           
 
-def load_json():
+def load_users_json():
     " Use a generator, no need to load all in memory"
     f = open('Users.json')
     data = json.load(f)
@@ -138,10 +138,12 @@ def format_results(preferences, query_results):
             for doc in data:
                 query_category = doc['_source']['category']
                 if query_category in c:
-                    print(c)
+                    print("Categories in user pref which matches query category: " + str(c))
+                else:
+                    print("No categories match")
             #print(user_pref[1][0].get(c))
            
-# Format user preferences based on search results
+# Format user preferences in Users.json based on search results
 #def format_preferences(preferences, results)
 
 def user_preferences(user):
@@ -161,15 +163,9 @@ def user_preferences(user):
     for doc in data:
         #print("%s) %s" % (doc['_id'], doc['_source']['categories']))
         
-        # user_pref is a dictonary with category as key and score as value
+        # user_pref[1][0] is a dictonary where key = category, value = score
         user_pref = doc['_id'], doc['_source']['categories']
         return user_pref[1][0]
-        
-        #for c in user_pref[1][0]:
-            #if user_pref[1][0].get(c) > 0:
-                #print(c)
-                #print(user_pref[1][0].get(c))
-           
 
 if __name__ == "__main__":
     directory = '/Users/linn/Desktop/'
@@ -181,7 +177,7 @@ if __name__ == "__main__":
     #helpers.bulk(es, bulk_json_data("../News_Category_Dataset_v2.json", "articles", "headline"), index ="articles")
 
     # Create user index
-    load_json()
+    load_users_json()
 
     # Get user preferences (categories)
     user = input("Enter user name: ")
@@ -199,6 +195,7 @@ if __name__ == "__main__":
     # Modify user preferences (Top 5 search results) 
     # Format user preferences adds score to categories in user.json
     # Scores are calculated based on categories in query results
+    # format_preferences(user_pref, query_results)
 
     # Print results
     #on = True # Enables querying multiple times
