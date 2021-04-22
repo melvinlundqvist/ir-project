@@ -133,18 +133,38 @@ def format_query(results):
 def format_results(preferences, query_results):
     #print(query_results)
     data = [doc for doc in query_results['hits']['hits']]
-    for c in preferences:
-        if preferences.get(c) > 0:
-            for doc in data:
-                query_category = doc['_source']['category']
-                if query_category in c:
-                    print("Categories in user pref which matches query category: " + str(c))
-                else:
-                    print("No categories match")
-            #print(user_pref[1][0].get(c))
-           
-# Format user preferences in Users.json based on search results
-#def format_preferences(preferences, results)
+    for k, v in sorted(preferences.items(), key=lambda item: item[1], reverse=True):
+        for doc in data:
+            query_category = doc['_source']['category']
+            if query_category == k:
+                print("%s - %s, docID: %s" % (doc['_source']['headline'], doc['_source']['category'], doc['_id']))
+                #print("Categories in user pref which matches query category: " + str(c))
+
+# print short description for the article the user wants to read
+def read_short_description(query_results, docID):
+    data = [doc for doc in query_results['hits']['hits']]
+    for doc in data:
+        if doc['_id'] == docID:
+            print(doc['_source']['short_description'])
+
+# Format user preferences in Users.json based on article selection
+def format_preferences(username, docID):
+    # get category for article
+    data = [doc for doc in query_results['hits']['hits']]
+    for doc in data:
+        if doc['_id'] == docID:
+            category = doc['_source']['category']
+    # read user file
+    with open("Users.json", "r") as jsonFile:
+        users = json.load(jsonFile)
+        for user in users:
+            if user['name'] == username:
+                user['categories'][0][category] += 1
+                break
+    # update user file
+    with open("Users.json", "w") as jsonFile:
+        json.dump(users, jsonFile)
+        jsonFile.close()
 
 def user_preferences(user):
     user_pref = es.search(
@@ -168,7 +188,6 @@ def user_preferences(user):
         return user_pref[1][0]
 
 if __name__ == "__main__":
-    directory = '/Users/linn/Desktop/'
     # Run elastic search locally
     es = Elasticsearch('127.0.0.1', port=9200, timeout=60)
     print("Elastic Running")
@@ -190,12 +209,14 @@ if __name__ == "__main__":
     # Modify search results
     # Format results rearranges results according to users preference
     format_results(user_pref, query_results)
-    #format_pref = format_preferences(user_pref, results)
+    # user clicks on an article (will be done in interface later)
+    docID = input("Enter ID of the article you want to read: ")
+    read_short_description(query_results, docID)
 
-    # Modify user preferences (Top 5 search results) 
     # Format user preferences adds score to categories in user.json
+    format_preferences(user, docID)
+    # Modify user preferences (Top 5 search results) 
     # Scores are calculated based on categories in query results
-    # format_preferences(user_pref, query_results)
 
     # Print results
     #on = True # Enables querying multiple times
