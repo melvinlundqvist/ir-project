@@ -18,9 +18,6 @@ def search_results(es, keyword, index, field):
     #query_categories = format_query(res)
     #return query_categories
 
-#Function to combine personalized preferences with search results
-#def combine_results():
-
 
 # Prints docID and article category
 def format_query(results):
@@ -33,20 +30,26 @@ def format_query(results):
         #print("%s) %s" % (doc['_id'], doc['_score']))
 
 # Update user preference based on search query & sort the results list
-def format_results(user_name, user_pref, query_results):
+def format_results(user_source, user_pref, user_name, query_results):
     data = [doc for doc in query_results['hits']['hits']]
     results = {}
     for doc in data:
         query_category = doc['_source']['category']
         headline = doc['_source']['headline']  
         doc_score = doc['_score']    
-        total_score = 0.8*doc['_score'] + 0.2*user_pref.get(query_category)
-        # Call combine document score with user_pref
+        
+        #total_score = 0.8*doc['_score'] + 0.2*user_pref.get(query_category)
+        # Call combine_results document score with user_pref
+
         results[headline] = [total_score, query_category]
     results = sorted(results.items(), key=lambda item:item[1][0], reverse=True)
             #print("doc score: %s - user category score: %s total score: %s" % (doc_score, user_pref.get(query_category), total_score))
     print(results)
     return results
+
+#Function to combine personalized preferences with search results
+#def combine_results(user_pref):
+
 
 # Print short description for the article the user wants to read
 def read_short_description(query_results, docID):
@@ -56,7 +59,7 @@ def read_short_description(query_results, docID):
             print(doc['_source']['short_description'])
 
 # Format user preferences in Users.json based on query results
-def format_preferences_search(username, user_pref, results):
+def format_preferences_search(user_source, user_pref, user_name, results):
     i = 0 
     history = list()
     for score in results:

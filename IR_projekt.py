@@ -18,7 +18,7 @@ indexer.load_users_json(es)
 
 # Get user preferences (categories)
 user_input = input("Enter user name: ")
-user_pref, username = user.user_preferences(es, user_input)
+user_source, user_pref, username = user.user_preferences(es, user_input)
 
 # Get query results
 query = input("Enter your query: ")
@@ -26,9 +26,9 @@ query_results = searcher.search_results(es, query, "articles", "headline")
 
 # Modify search results
 # Format results rearranges results according to users preference
-results = searcher.format_results(username, user_pref, query_results)
+results = searcher.format_results(user_source, user_pref, username, query_results)
 # Format user preferences adds score to categories in user.json
-searcher.format_preferences_search(username, user_pref, results)
+searcher.format_preferences_search(user_source, user_pref, user_name, results)
 # user clicks on an article (will be done in interface later)
 docID = input("Enter ID of the article you want to read: ")
 searread_short_description(query_results, docID)
