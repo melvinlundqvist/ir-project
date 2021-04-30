@@ -22,6 +22,5 @@ def user_preferences(es, user):
         # user_pref[1][0] is a dictonary where key = category, value = score
         user_pref = doc['_id'], doc['_source']['categories']
         username = doc['_id'], doc['_source']['name']
-        user_source = doc['_id'], doc['_source']
-        #print(user_name)
-    return user_source, user_pref[1][0], username[1]
+        user_history = doc['_id'], doc['_source']['history']
+    return user_history[1], user_pref[1][0], username[1]
