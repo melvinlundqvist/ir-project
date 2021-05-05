@@ -13,14 +13,11 @@ def user_preferences(es, user):
             }
         }
     )
-
-    data = [doc for doc in user_pref['hits']['hits']]
     
-    for doc in data:
+    for doc in user_pref['hits']['hits']:
         #print("%s) %s" % (doc['_id'], doc['_source']['categories']))
-        
-        # user_pref[1][0] is a dictonary where key = category, value = score
-        user_pref = doc['_id'], doc['_source']['categories']
+
+        user_click = doc['_id'], doc['_source']['click']
         username = doc['_id'], doc['_source']['name']
         user_history = doc['_id'], doc['_source']['history']
-    return user_history[1], user_pref[1][0], username[1]
+    return user_history[1], user_click[1], username[1]

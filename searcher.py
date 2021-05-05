@@ -15,110 +15,96 @@ def search_results(es, keyword, index, field):
         }
     )
     return res
-    #query_categories = format_query(res)
-    #return query_categories
 
-
-# Prints docID and article category
-def format_query(results):
-    query_categories = []
-    data = [doc for doc in results['hits']['hits']]
-    for doc in data:
-        query_categories.append(doc['_source']['category'])
-    return query_categories
-        #print("%s) %s" % (doc['_id'], doc['_source']['category']))
-        #print("%s) %s" % (doc['_id'], doc['_score']))
+def get_user_pref(user_name):
+    with open("Users.json", "r") as jsonFile:
+        users = json.load(jsonFile)
+        for user in users:
+            if user['name'] == user_name:
+                return user.get("history"), user.get("click"), user.get("name")
 
 # Update user preference based on search query & sort the results list
-def format_results(user_history, user_pref, user_name, query_results):
-    data = [doc for doc in query_results['hits']['hits']]
-    results = {}
-    combined_res = {}
-    for history_list in user_history:
-        combined_res = (combine_history(user_history))
+def format_results(user_query, user_click, user_name, query_results):
+    results = []
+    combined_res_query = (combine_history(user_query))
+    combined_click = combine_history(user_click)
 
-    print(combined_res)
-    print(len(combined_res))
+    #print(combined_res_query)
+    #print(len(combined_res_query))
 
-    for doc in data:
+    for doc in query_results['hits']['hits']:
         query_category = doc['_source']['category']
         headline = doc['_source']['headline']  
-        doc_score = doc['_score']    
-        total_score = 0.8*doc['_score'] + 0.2*user_pref.get(query_category)
-        # Call combine_results document score with user_pref
+        doc_score = doc['_score']
+        doc_id = doc['_id']
+        history_score = combined_res_query.get(query_category)
+        click_score = combined_click.get(query_category)
+        total_score = 0.5*doc_score
+        #print("tot " + str(total_score))
+        if history_score is not None:
+            total_score += 0.3*(history_score / len(user_query))
+            #print("history " + str(total_score))
+        if click_score is not None:
+            total_score += 0.2*click_score
+            #print("click " + str(total_score))
+        results.append({"score": total_score, "category": query_category, "id": doc_id, "headline": headline})
 
-        results[headline] = [total_score, query_category]
-    results = sorted(results.items(), key=lambda item:item[1][0], reverse=True)
-            #print("doc score: %s - user category score: %s total score: %s" % (doc_score, user_pref.get(query_category), total_score))
-    print(results)
+    results.sort(key=lambda item:item.get("score"), reverse=True)
+
+    print("SEARCH RESULTS:")
+    for i in range(len(results)):
+        print(str(i+1) + " " + str(results[i]))
     return results
 
-#Function to set score for categories in user_history
-def combine_history(user_history):
+#Function to set score for categories in user_query
+def combine_history(category_list):
     category_scores = {}
-    for category in user_history:
+    for category in category_list:
         if category in category_scores:
             category_scores[category] += 1
         else:
             category_scores[category] = 1
     return category_scores
 
-        
-
 # Print short description for the article the user wants to read
-def read_short_description(query_results, docID):
-    data = [doc for doc in query_results['hits']['hits']]
-    #for doc in data:
-        #if doc['_id'] == docID:
-            
-            #print(doc['_source']['short_description'])
+def read_short_description(results, query_results, ID):
+    docID = results[int(ID)-1].get("id")
+    for doc in query_results['hits']['hits']:
+        if doc['_id'] == docID:
+            print(doc['_source']['short_description'])
 
 # Format user preferences in Users.json based on query results
-def format_preferences_search(user_history, user_pref, username, results):
-    i = 1 
-    for score in results:
-        query_category = score[1][1]
+def format_preferences_search(user_query, username, results):
+    for i in range(5):
+        query_category = results[i].get("category")
         with open("Users.json", "r") as jsonFile:
             users = json.load(jsonFile)
             for user in users:
                 if user['name'] == username:
-                    # Update user pref
-                    #current_score = user['categories'][0][query_category]
-                    #user['categories'][0][query_category] = update_user_pref(current_score)
-                    #user['categories'][0][query_category] *= 1.02
-                    if len(user['history']) <= 11:
-                        user['history'].append(query_category)
-                    else:
-                        for j in range(5):
-                            user['history'].pop(0)
-                            print(user['history'])
-                    break
+                    user['history'].append(query_category)
+                    if len(user['history']) > 10:
+                        user['history'].pop(0)
         # Update user file
         with open("Users.json", "w") as jsonFile:
             json.dump(users, jsonFile)
             jsonFile.close()
-        if i == 5:
-            break
-        i += 1
 
-
-#def update_user_pref(current_score, ):
-    
+#def update_user_click(current_score, ):  
 
 # Format user preferences in Users.json based on article selection
-def format_preferences_click(username, docID):
+def format_preferences_click(results, username, ID):
     # get category for article
-    data = [doc for doc in query_results['hits']['hits']]
-    for doc in data:
-        if doc['_id'] == docID:
-            category = doc['_source']['category']
+    category = results[int(ID)-1].get("category")
+    print(category)
     # read user file
     with open("Users.json", "r") as jsonFile:
         users = json.load(jsonFile)
         for user in users:
             if user['name'] == username:
-                user['categories'][0][category] += 1
-                break
+                print(category)
+                user['click'].append(category)
+                if len(user['click']) > 5:
+                    user['click'].pop(0)
     # update user file
     with open("Users.json", "w") as jsonFile:
         json.dump(users, jsonFile)

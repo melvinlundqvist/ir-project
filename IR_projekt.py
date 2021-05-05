@@ -11,29 +11,30 @@ es = Elasticsearch('127.0.0.1', port=9200, timeout=60)
 print("Elastic Running")
 
 # Create article index
-#helpers.bulk(es, bulk_json_data("../News_Category_Dataset_v2.json", "articles", "headline"), index ="articles")
+#helpers.bulk(es, indexer.bulk_json_data("../News_Category_Dataset_v2.json", "articles", "headline"), index ="articles")
 
 # Create user index
 indexer.load_users_json(es)
 
 # Get user preferences (categories)
-user_input = input("Enter user name: ")
-user_history, user_pref, username = user.user_preferences(es, user_input)
+user_name = input("Enter user name: ")
 
-# Get query results
-query = input("Enter your query: ")
-query_results = searcher.search_results(es, query, "articles", "headline")
+while True:
+    user_history, user_click, username = searcher.get_user_pref(user_name)
+    # Get query results
+    query = input("Enter your query: ")
+    query_results = searcher.search_results(es, query, "articles", "headline")
 
-# Modify search results
-# Format results rearranges results according to users preference
-results = searcher.format_results(user_history, user_pref, username, query_results)
-# Format user preferences adds score to categories in user.json
-searcher.format_preferences_search(user_history, user_pref, username, results)
-# user clicks on an article (will be done in interface later)
+    # Modify search results
+    # Format results rearranges results according to users preference
+    results = searcher.format_results(user_history, user_click, username, query_results)
+    # Format user preferences adds score to categories in user.json
+    searcher.format_preferences_search(user_history, username, results)
 
-#docID = input("Enter ID of the article you want to read: ")
-#searcher.read_short_description(query_results, docID)
-
+    # user clicks on an article (will be done in interface later)
+    ID = input("Enter ID of the article you want to read: ")
+    searcher.read_short_description(results, query_results, ID)
+    searcher.format_preferences_click(results, user_name, ID)
 
 # Modify user preferences (Top 5 search results) 
 # Scores are calculated based on categories in query results
