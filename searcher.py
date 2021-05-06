@@ -31,29 +31,36 @@ def format_results(user_query, user_click, user_name, query_results):
 
     #print(combined_res_query)
     #print(len(combined_res_query))
+    doc_scores = []
+    for doc in query_results['hits']['hits']:
+        doc_scores.append(doc['_score'])
 
+    i = 1
     for doc in query_results['hits']['hits']:
         query_category = doc['_source']['category']
         headline = doc['_source']['headline']  
         doc_score = doc['_score']
         doc_id = doc['_id']
+        print(str(i) + " - " + str({"score": doc_score, "category": query_category, "headline": headline}))
+        i += 1
         history_score = combined_res_query.get(query_category)
         click_score = combined_click.get(query_category)
-        total_score = 0.5*doc_score
-        #print("tot " + str(total_score))
+        total_score = 0.5*(doc_score / max(doc_scores))
+        print("total " + str(total_score))
         if history_score is not None:
-            total_score += 0.3*(history_score / len(user_query))
-            #print("history " + str(total_score))
+            total_score += 0.2*(history_score / len(user_query))
+            #print("len user_query " + str(len(user_query)))
+            print("history " + str(0.2*(history_score / len(user_query))))
         if click_score is not None:
-            total_score += 0.2*click_score
-            #print("click " + str(total_score))
-        results.append({"score": total_score, "category": query_category, "id": doc_id, "headline": headline})
+            total_score += 0.3*(click_score / len(user_click))
+            print("click " + str(0.3*(click_score / len(user_click))))
+        results.append({"score": total_score, "category": query_category, "headline": headline})
 
     results.sort(key=lambda item:item.get("score"), reverse=True)
 
     print("SEARCH RESULTS:")
     for i in range(len(results)):
-        print(str(i+1) + " " + str(results[i]))
+        print(str(i+1) + " - " + str(results[i]))
     return results
 
 #Function to set score for categories in user_query
