@@ -33,11 +33,13 @@ def bulk_json_data(json_file, _index, doc_type):
                 #"_type": doc_type,
                 "_id": uuid.uuid4(),
                 "_source": doc
-            }           
+            }
+    print("Indexing done!")
+
 # Index users
 def load_users_json(es):
-    " Use a generator, no need to load all in memory"
+    # Use a generator, no need to load all in memory
     f = open('Users.json')
     data = json.load(f)
     for i in data:
-        res = es.index(index='users',doc_type='user_data',body=i)
+        res = es.index(index='users', doc_type='user_data', body=i)

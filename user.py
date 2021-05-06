@@ -2,6 +2,8 @@ from elasticsearch import Elasticsearch, helpers
 import os, sys, uuid
 import json
 
+# we don't use this file anymore
+
 def user_preferences(es, user):
     user_pref = es.search(
         index="users",
@@ -16,7 +18,6 @@ def user_preferences(es, user):
     
     for doc in user_pref['hits']['hits']:
         #print("%s) %s" % (doc['_id'], doc['_source']['categories']))
-
         user_click = doc['_id'], doc['_source']['click']
         username = doc['_id'], doc['_source']['name']
         user_history = doc['_id'], doc['_source']['history']
