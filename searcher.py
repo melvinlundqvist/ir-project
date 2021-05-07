@@ -52,9 +52,13 @@ def format_results(user_history, user_click, query_results, personalize, weights
         for doc in query_results['hits']['hits']:
             results.append({'score': doc['_score'], 'category': doc['_source']['category'], 'headline': doc['_source']['headline'], 'short_description': doc['_source']['short_description']})
 
-    #print("SEARCH RESULTS:")
-    #for i in range(len(results)):
-    #    print(str(i+1) + " - " + str(results[i]))
+    print("SEARCH RESULTS:\n")
+    for i in range(len(results)):
+        short_des = results[i].get('short_description')
+        if short_des != "":
+            print('%d. %s\n%s\n'% (i+1, results[i].get('headline'), short_des))
+        else:
+            print('%d. %s\nHas no short description...\n'% (i+1, results[i].get('headline')))
     return results
 
 # Function to count appearences of categories in list
