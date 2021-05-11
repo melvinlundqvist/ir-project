@@ -39,6 +39,7 @@ def click_search():
         for i in range(len(results)):
             line = '%d. %s' % (i+1, results[i].get('headline'))
             #line = '%d. %s - %.3f' % (i+1, results[i].get('headline'), results[i].get('score'))
+            # for user evaluation
             listbox.insert('end', line)
 
         # update user preferences in Users.json based on results
