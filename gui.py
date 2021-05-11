@@ -1,8 +1,7 @@
 from elasticsearch import Elasticsearch, helpers
-import os, sys, uuid
+import sys
 import json
 import tkinter as tk
-import user
 import searcher
 import indexer
 
@@ -37,13 +36,13 @@ def click_search():
             message += " The first ten hits are:"
         lbl_message.config(text="\n" + message + "\n")
         for i in range(len(results)):
-            line = '%d. %s' % (i+1, results[i].get('headline'))
-            #line = '%d. %s - %.3f' % (i+1, results[i].get('headline'), results[i].get('score'))
-            # for user evaluation
+            line = '%d. %s - %.3f' % (i+1, results[i].get('headline'), results[i].get('score'))
+            # for user evaluation, use the line below instead
+            # line = '%d. %s' % (i+1, results[i].get('headline'))
             listbox.insert('end', line)
 
         # update user preferences in Users.json based on results
-        searcher.format_preferences_search(user_history, user, results)
+        searcher.format_preferences_search(user, results)
 
 def click_article(event):
     textbox.delete('1.0', 'end')

@@ -1,5 +1,5 @@
-from elasticsearch import Elasticsearch, helpers
-import os, sys, uuid
+from elasticsearch import Elasticsearch
+import os, uuid
 import json
 
 def run_elastic():
