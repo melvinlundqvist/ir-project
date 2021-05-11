@@ -76,6 +76,7 @@ def click_start():
                     frame_lbls.pack(side='left')
                     frame_entries.pack(side='left')
                     btn_save.pack(side='left')
+                    btn_clear.pack(side='right')
                 return
     lbl_message.config(text="\nIncorrect username.")
 
@@ -96,6 +97,10 @@ def click_save():
     global weights
     weights = [w1/sum, w2/sum, w3/sum]
     update_weights()
+
+# clear user histories
+def click_clear():
+    searcher.clear_histories(user)
 
 # initiate gui window
 window = tk.Tk()
@@ -128,6 +133,7 @@ entry_click = tk.Entry(frame_entries, bd=0, width=4, bg="white", fg="black", ins
 entry_click.pack()
 update_weights()
 btn_save = tk.Button(window, text="Normalize and save", bd=0, bg="blue", fg="black", font="none 12 bold", command=click_save)
+btn_clear = tk.Button(window, text="Clear history", bd=0, bg="blue", fg="black", font="none 12 bold", command=click_clear)
 
 
 if __name__ == "__main__":
@@ -153,7 +159,7 @@ if __name__ == "__main__":
 
     # run elastic search locally
     es = Elasticsearch('127.0.0.1', port=9200, timeout=60)
-    print("Elastic Running!")
+    print("Elastic Running")
 
     # create article index  
     if do_indexing:

@@ -2,10 +2,6 @@ from elasticsearch import Elasticsearch
 import os, uuid
 import json
 
-def run_elastic():
-    es = Elasticsearch('127.0.0.1', port=9200, timeout=60)
-    print("Elastic Running")
-
 def script_path():
     path = os.path.dirname(os.path.realpath(__file__))
     if os.name == 'posix': # macOS/Linux

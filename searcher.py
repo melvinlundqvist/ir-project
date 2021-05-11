@@ -110,4 +110,17 @@ def format_preferences_click(user_name, category):
         json.dump(users, jsonFile)
         jsonFile.close()
 
+# Clear user histories
+def clear_histories(user_name):
+    # read user file
+    with open("Users.json", "r") as jsonFile:
+        users = json.load(jsonFile)
+        for user in users:
+            if user['name'] == user_name:
+                user['history'].clear()
+                user['click'].clear()
 
+    # update user file
+    with open("Users.json", "w") as jsonFile:
+        json.dump(users, jsonFile)
+        jsonFile.close()
